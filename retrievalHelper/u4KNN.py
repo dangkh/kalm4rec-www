@@ -84,12 +84,12 @@ class neighbor4kw(object):
                 rest_kw[-1].append(kw)
         for idx in range(len(restFT)):
             counter = len(restFT[idx])
-            while counter < numKW4FT * 3:
+            while counter < numKW4FT:
               counter += 1
               restFT[idx].append(np.zeros(384))
               rest_kw[idx].append(rest_kw[idx][0])
-            rest_train.append(restFT[idx][: numKW4FT * 3])
-            rest_kw_final.append(rest_kw[idx][:numKW4FT * 3])
+            rest_train.append(restFT[idx][: numKW4FT])
+            rest_kw_final.append(rest_kw[idx][:numKW4FT])
         rest_train = np.asarray(rest_train)
 
 

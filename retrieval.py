@@ -3,6 +3,7 @@ from ast import parse
 import os
 import time
 from retrievalHelper.utils import *
+from reRanker.utils import *
 from kwExtractorHelper.utils import mkdir
 from retrievalHelper.u4Res import *
 from retrievalHelper.u4KNN import *
@@ -111,7 +112,7 @@ for ite in tqdm(range(len(test_users))):
     result = [l_rest[x] for x in idxrest[:args.quantity]]
     prediction.append(result)
     groundtruth = gt[testUser]
-    score = quick_eval(result[:args.validTopK], groundtruth, None, args.city=='tripAdvisor')
+    score = quick_eval(result[:args.validTopK], groundtruth, args.city=='tripAdvisor')
     lResults.append(score)
     if args.export2LLMs:
         simU = topUser
@@ -141,7 +142,8 @@ if args.export2LLMs:
 p, r, f, n = extractResult(lResults)
 
 print("args:", args, file = sourceFile)
-print(mean(p), mean(r), mean(f), mean(n), file = sourceFile)
+k = args.validTopK
+print(f'Pre@{k}: {mean(p)}, Recall@{k}:{mean(r)}, F1@{k}:{mean(f)}, NDCG@{k}:{mean(n)}', file = sourceFile)
 print('*'*10, 'End' ,'*'*10, file = sourceFile)
 sourceFile.close()
 print("End time: ", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
