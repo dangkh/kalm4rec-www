@@ -49,7 +49,11 @@ python retrieval.py --city singapore --edgeType IUF
 ### Stage 3: Recommend by LLMs
 ```
 
-# MPG
+# reranker
+<!-- if using fewshots -->
+python reRanker/create_sample_fewshot.py --city singapore 
+
+
 python reRanker/rerank.py --city singapore --api_key {YOUR_API_KEY}
 
 ```
