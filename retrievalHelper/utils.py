@@ -4,6 +4,7 @@ import numpy as np
 import json
 from tqdm import tqdm
 import pandas as pd
+from sklearn.metrics import ndcg_score
 
 def setSeed(random_seed):
     torch.manual_seed(random_seed) # cpu
@@ -85,11 +86,6 @@ def getRestLB(data):
               rest_Label.append(rest)
     return rest_Label
 
-def label_ftColab(train_users, test_users, gt, no_rest, rest_Label):
-    label_train = gt2label(train_users, gt, no_rest, "label_train.npy", rest_Label)
-    label_test = gt2label(test_users, gt, no_rest, "label_test.npy", rest_Label)
-
-    return label_train, label_test
 
 def gt2label(list_user, gt, no_rest, filename, rest_Label):
     LB = []
@@ -129,7 +125,8 @@ def extractResult(lResults):
     p = [x[0] for x in lResults]
     r = [x[1] for x in lResults]
     f = [x[2] for x in lResults]
-    return p, r, f
+    n = [x[3] for x in lResults]
+    return p, r, f, n
 
 
 def procesTest(test_users, test_users2kw, idx, KNN, restGraph, returnTop = False):
@@ -168,4 +165,33 @@ class regionHelper(object):
             tmp = np.where(self.rest2city == reg)[0]
             marker[tmp] = 1
         return marker
+
+def quick_eval(preds, gt, source = None, hotel = False):
+    '''
+    - preds: [list of restaurants]
+    - GT: [('wrdLrTcHXlL4UsiYn3cgKQ', 4.0), ('uG59lRC-9fwt64TCUHnuKA', 3.0)]
+    - 
+    '''
+    gt_list = set([a[0] for a in gt])
+    if hotel:
+        gt_list = set([str(a[0]) for a in gt])
+
+    preds_list = list(set(preds))
+    ov = gt_list.intersection(preds_list)
+    prec = len(ov)/len(preds_list)
+    rec = len(ov)/len(gt_list)
+    f1 = 0 if prec+rec == 0 else 2*prec*rec/(prec+rec)
+
+    truth_relevant = np.asarray([[0]*len(preds)])
+    if len(preds) == 1:
+        ndcg = len(ov)/len(preds_list)
+    for candidate in ov:
+        idx = preds_list.index(candidate)
+        truth_relevant[0,idx] = 1
+
+    score = np.asarray([[x+1 for x in range(len(preds))][::-1]])
+    ndcg = ndcg_score(truth_relevant, score)
+
+    return prec, rec, f1, n
+
         

@@ -8,7 +8,7 @@
 ```
 spacy, DGL, 
 ```
-##  Usage
+##  Required Files:
 
 ### Stage 1: Keyword extraction and Processing
 ```
@@ -24,40 +24,27 @@ python .\extractor.py --edgeType IUF --city singapore --kwExtractor kw_NLTK
 # remember to delete all files 
 ```
 
-### Stage 2: Generate candidates: jaccard, MPG, MF, MVAE.
+### Stage 2: Generate candidates
 
 ```
-# jaccard
-python cmain.py --RetModel jaccard
-
-# MF
-python .\retrieval.py --RetModel MF  --export2LLMs --city edinburgh --num_epochs 100 --hidden_dim 256 --lr 0.007
-
-# MVAE
-python .\retrieval.py --RetModel MVAE  --export2LLMs --city edinburgh --num_epochs 500 --hidden_dim 128 --lr 0.003
 
 # MPG
-python retrieval.py --RetModel MGP --export2LLMs --city singapore --edgeType IUF
+python retrieval.py --city singapore --edgeType IUF
 
 
 ```
 #### Args
 
-> `checkKeyword`: check number of keywords then exit
->
 > `RetModel`: models.
 >
-> `genType`: build a KNN model to obtain most similar keyword in case of missing for testing user.
+> `edgeType`: build a KNN model to obtain most similar keyword in case of missing for testing user.
 >
->
+> `tuningData`: boolean, export tuning data or not
 
 #### Results for retrieval models:
-| Models      | P@20        | R@20          |
-| :----:      |    :----:   |    :----:     |
-| jaccard     | 0.03        |   0.06        |
-| MF          | 0.05        |   0.13        |
-| MVAE        | 0.08        |   0.28        |
-| MPG         | 0.15        |   0.42        |
+| city      | P@20        | R@20          |
+| :----:    |    :----:   |    :----:     |
+| 		    | 0.15        |   0.42        |
 
 ### Stage 3: Recommend by LLMs
 
