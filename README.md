@@ -1,7 +1,7 @@
 # KALM4Rec
 ## Keyword-driven Retrieval-Augmented Large Language Models for Cold-start User Recommendations 
 <p align="center">
-<img src="./imgs/pipeline.png" alt="ALM4Res" />
+<img src="./imgs/pipeline.pdf" alt="ALM4Res" />
 </p>
 
 ## Dependencies
@@ -9,9 +9,19 @@
 spacy, DGL, 
 ```
 ##  Required Files:
+```
+tripAdvisor: tripAdvisor.txt, hotel.txt
+
+all: split.json
+
+
+```
 
 ### Stage 1: Keyword extraction and Processing
 ```
+# if using amazon and tripAdvisor:
+python convert.py --city tripAdvisor
+
 # extract keyword
 python .\extractor.py --edgeType IUF --city singapore --kwExtractor kw_NLTK
 
