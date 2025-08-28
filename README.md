@@ -31,15 +31,15 @@ python .\extractor.py --edgeType IUF --city singapore --kwExtractor kw_NLTK
 # MPG
 python retrieval.py --city singapore --edgeType IUF
 
-
 ```
-#### Args
 
+#### Args
 > `RetModel`: models.
 >
 > `edgeType`: build a KNN model to obtain most similar keyword in case of missing for testing user.
 >
 > `tuningData`: boolean, export tuning data or not
+
 
 #### Results for retrieval models:
 | city      | P@20        | R@20          |
@@ -47,6 +47,28 @@ python retrieval.py --city singapore --edgeType IUF
 | 		    | 0.15        |   0.42        |
 
 ### Stage 3: Recommend by LLMs
+```
+
+# MPG
+python reRanker/rerank.py --city singapore --api_key {YOUR_API_KEY}
+
+```
+
+#### Args
+> `type_method`: zeroshot, 1_shot, 2_shots, 3_shots.
+>
+> `num_kws_user`
+>
+> `num_kws_rest`
+>
+> `city`: 'edinburgh', 'london', 'singapore', 'tripAdvisor', 'baby', 'videos'
+>
+> `tuningData`: boolean, export tuning data or not
+>
+> `type_LLM`: gemini_pro, chatGPT
+>
+> `api_key`: your API key
+
 
 ## Dataset:
 ```
