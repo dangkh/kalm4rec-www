@@ -57,6 +57,19 @@ python retrieval.py --city singapore --edgeType IUF
 | 		    | 0.15        |   0.42        |
 
 ### Stage 3: Recommend by LLMs
+
+#### Stage 3.1: check result
+
+```
+
+# make sure run and export for rerank:
+python retrieval.py --city singapore --edgeType IUF --export2LLMs
+
+# check result of retrieval:
+python info.py --city singapore
+
+```
+
 ```
 
 # reranker

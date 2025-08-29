@@ -13,7 +13,7 @@ device = torch.device('cuda' if GPU else "cpu")
 random_seed = 1001
 setSeed(random_seed)
 
-listcity = ['charlotte', 'edinburgh', 'lasvegas', 'london', 'phoenix', 'pittsburgh', 'singapore']
+listcity = ['edinburgh', 'london','singapore', 'tripAdvisor', 'amazonBaby', 'amazonVideo',]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--city', type=str, default='edinburgh', help=f'choose city{listcity}')

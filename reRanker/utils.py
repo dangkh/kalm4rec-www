@@ -128,9 +128,10 @@ def quick_eval(preds, gt, hotel = False):
 def evalAll(user_rank, groundtruth, is_base = False):
     evalK = [1,3,5,10,15,20]
     allPrec, allRec, allF1, allNdcg = [],[],[], []
+    selectedKeys = list(user_rank.keys())[:1000]
     for k in evalK:
         prec_final, rec_final, f1_final, ndcg_final = [],[],[], []
-        for uid in user_rank.keys():
+        for uid in selectedKeys:
             pred =  [int(px) for px in user_rank[uid]]
             prec, rec, f1, ndcg= quick_eval(pred[:k], groundtruth[uid])
             prec_final.append(prec)
@@ -142,5 +143,5 @@ def evalAll(user_rank, groundtruth, is_base = False):
         allRec.append(np.mean(rec_final))
         allF1.append(np.mean(f1_final))
         allNdcg.append(np.mean(ndcg_final))
-    print(len(user_rank.keys()))
+    print(len(selectedKeys))
     return allPrec, allRec, allF1, allNdcg

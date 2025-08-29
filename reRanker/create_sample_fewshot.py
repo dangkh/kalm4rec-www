@@ -3,20 +3,21 @@ import pandas as pd
 import argparse
 import os
 
+def load_split(sfile, setname='test'):
+    return json.load(open(sfile))
 
 if __name__ == '__main__':
-    listcity = ['edinburgh', 'london', 'singapore']    
+    listcity = ['edinburgh', 'london', 'singapore', "tripAdvisor", "amazonBaby", "amazonVideo"]    
     parser = argparse.ArgumentParser('sample for few shots')
     parser.add_argument('--city', type=str, default='singapore', help=f'choose city{listcity}')
     args = parser.parse_args()
     
-
-    # Open the JSON file for reading
-    with open('data/reviews/splits.json', 'r') as file:
-        # Load the JSON data from the file
-        data = json.load(file)
-
     city = args.city
+    sfile='./data/reviews/splits.json'
+    if city in ["tripAdvisor", "amazonBaby", "amazonVideo"]:
+        sfile = f'./data/reviews/{city}_splits.json'
+
+    data = load_split(sfile)
 
     user_train = data[city]['train']
 
@@ -42,6 +43,8 @@ if __name__ == '__main__':
             label_res = hist_res[:5] + random_fill
             new_res_candi = hist_res[:5] + random_fill
             count_10 +=1
+        new_res_candi = [str(x) for x in new_res_candi]
+        label_res = [str(x) for x in label_res]
         random.shuffle(new_res_candi)
         uid_train_rest[uid] =  new_res_candi
         label_[uid] = label_res

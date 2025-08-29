@@ -28,7 +28,7 @@ def prompt(client, type_llm, inputPrompt):
     if type_llm == 'gemini_pro':
         generation_config = {'candidate_count':1, "max_output_tokens": 2048, "temperature": 0, "top_p": 0.99, "top_k": 32}
         responses = client.models.generate_content(
-            model="models/gemini-2.0-flash",
+            model="models/gemini-1.5-pro",
             contents = inputPrompt,
             config=generation_config
         )
@@ -52,8 +52,7 @@ def prompt(client, type_llm, inputPrompt):
 
 
 ### FewShot
-def fewshot(model,city, type_method,type_llm,  data_user_test, user_kws_train,  map_rest_id2int, 
-    new_results_res_kw, num_kws_user, num_kws_rest, samples, label_samples, root_dir):
+def fewshot(model, city, type_method, type_llm, data_user_test, user_kws_train, map_rest_id2int, new_results_res_kw, num_kws_user, num_kws_rest, samples, label_samples, root_dir):
 
     temp_fewshot = all_prompts[type_llm][type_method]
     user_rank = dict()
@@ -63,6 +62,7 @@ def fewshot(model,city, type_method,type_llm,  data_user_test, user_kws_train,  
     if not os.path.exists(folder_path_result_rerank):
         os.makedirs(folder_path_result_rerank)
     file_path_ = folder_path_result_rerank+ f"/{type_method}_{num_kws_user}_{num_kws_rest}.json"
+    print(file_path_)
     if os.path.isfile(file_path_):
         print("File exists")
         with open(file_path_, "r") as file:
@@ -71,18 +71,19 @@ def fewshot(model,city, type_method,type_llm,  data_user_test, user_kws_train,  
     for uid in tqdm(data_user_test.keys(), total=len(data_user_test)):
         if len_rank is not None:
             if counterRequest <= len_rank:
+                counterRequest += 1 
                 continue
         if (counterRequest+1) % sleep_int == 0:
             time.sleep(sleep_time)
         user_kw = data_user_test[uid]['kw'][: num_kws_user]  # use 5 kws for user
         res_candidate = list(map(int,[str(map_rest_id2int[cand]) for cand in data_user_test[uid]['candidate']]))
         ### selecting randomly users for examples
-        user_train = random.choice(list(samples.keys()))
-        user_train_2 = random.choice(list(samples.keys()))
-        user_train_3 = random.choice(list(samples.keys()))
+        userKeys = list(user_kws_train.keys())
+        user_train = random.choice(userKeys)
+        user_train_2 = random.choice(userKeys)
+        user_train_3 = random.choice(userKeys)
 
         user_train_kw = list(user_kws_train[user_train])[: num_kws_user]
-
         candidate_train = samples[user_train]
         labels = label_samples[user_train]
         res_candidate_train = list(map(int,[str(map_rest_id2int[cand]) for cand in candidate_train]))
@@ -124,7 +125,7 @@ def fewshot(model,city, type_method,type_llm,  data_user_test, user_kws_train,  
                                      ', '.join(user_kw),res_candidate, cand_kw_fn(uid, new_results_res_kw,data_user_test, map_rest_id2int, 20, num_kws_rest))
 
         predictions = prompt(model,type_llm, inputPrompt)
-        counterRequest += 1        
+               
         pred = predictions.split(',')
         user_rank[uid] = list(map(int, pred))
         with open(file_path_, "w") as json_file:
@@ -146,17 +147,25 @@ def zeroshot(model, type_llm, data_user_test,  map_rest_id2int, new_results_res_
         There are the keywords that I often mention when wanting to choose hotels: {}.
         The candidate hotel set for me is enclosed in square brackets, with the hotels separated by commas (Format: [hotel_id_1, hotel_id_2,...]) is: {}
         Keywords associated with candidate hotels are in the following format: hotel_id_1 (keyword 1, keyword 2,...) are {}.
-        Input: Please suggest the 15 most suitable hotels for me from the candidate set that I will visit them, according to the user and candidate hotel keywords I provided above.
+        Input: Please suggest the 15 most suitable hotels for me from the candidate set that I will choose to stay, according to the user and candidate hotel keywords I provided above.
         Output: Must include 15 hotels in the candidate hotel set. No explanation. Desired format is string: hotel_id_1, hotel_id_2, ... 
         '''
     else:
         temp = '''
-        There are the keywords that I often mention when wanting to choose restaurants: {}.
-        The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_id_1, restaurant_id_2,...]) is: {}
-        Keywords associated with candidate restaurants have the following form: restaurant_id_1 (keyword 1, keyword 2,...) are {}.
-        Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
-        Output: Must include 15 restaurants in the candidate restaurant set. No explanation. Desired format is string: restaurant_id_1, restaurant_id_2, ... 
+        There are the keywords that I often mention when wanting to choose items on Amazon: {}.
+        The candidate items set for me is enclosed in square brackets, with the items separated by commas (Format: [item_id_1, item_id_2,...]) is: {}
+        Keywords associated with candidate items have the following form: item_id_1 (keyword 1, keyword 2,...) are {}.
+        Input: Please suggest the 15 most suitable items for me from the candidate set that I will purchase them, according to the user and candidate item keywords I provided above.
+        Output: Must include 15 items in the candidate item set. No explanation. Desired format is string: item_id_1, item_id_2, ... 
         '''
+
+        # temp = '''
+        # There are the keywords that I often mention when wanting to choose restaurants: {}.
+        # The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_id_1, restaurant_id_2,...]) is: {}
+        # Keywords associated with candidate restaurants have the following form: restaurant_id_1 (keyword 1, keyword 2,...) are {}.
+        # Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+        # Output: Must include 15 restaurants in the candidate restaurant set. No explanation. Desired format is string: restaurant_id_1, restaurant_id_2, ... 
+        # '''
 
     user_rank = dict()
     # user_shuffle = dict()
@@ -178,6 +187,7 @@ def zeroshot(model, type_llm, data_user_test,  map_rest_id2int, new_results_res_
             time.sleep(120)
         if len_rank is not None:
             if counterRequest <= len_rank:
+                counterRequest += 1
                 continue
         user_kw = data_user_test[uid]['kw'][:num_kws_user] 
         res_candidate = list(map(int,[str(map_rest_id2int[cand]) for cand in data_user_test[uid]['candidate']])) 
@@ -192,8 +202,7 @@ def zeroshot(model, type_llm, data_user_test,  map_rest_id2int, new_results_res_
             try:
                 predictions = prompt(model, type_llm, inputPrompt)
                 print(predictions)
-                flag = True
-                counterRequest += 1
+                flag = True                
                 pred_ = predictions.split(',')
                 pred = []
                 for aa in pred_:
@@ -232,8 +241,8 @@ if __name__ == '__main__':
     with open(root_dir+"prompts.yaml", "r") as f:
         all_prompts = yaml.safe_load(f)
 
-    run_list_kws_for_user = [3]
-    run_list_kws_for_rest = [4]
+    run_list_kws_for_user = [12, 10]
+    run_list_kws_for_rest = [12, 10, 8]
     list_method = ['3_shots']
 
     ### Load data
@@ -250,7 +259,6 @@ if __name__ == '__main__':
         is_tripAdvisor= False
     gt_file = 'data/reviews/{}.csv'.format(args.city)
     gt, u2rs, map_rest_id2int = prepare_user2rests(gt_file, is_tripAdvisor = is_tripAdvisor)
-
 
     new_results_res_kw = get_kw_for_rest(rest_kws, map_rest_id2int)
 
@@ -287,9 +295,9 @@ if __name__ == '__main__':
                     file.write("\n")
 
                 if args.type_LLM == 'gemini_pro':
-                    client = genai.Client(api_key="")
+                    client = genai.Client(api_key="AIzaSyAr_JH8EFd27kXVm3tBwbHbYOqDkMpLgps")
                     if met in ['1_shot', '2_shots', '3_shots']:
-                        user_rank = fewshot(client, city, met,  args.type_LLM, data_user_test, user_kws_train, map_rest_id2int, new_results_res_kw, num_kws_user, num_kws_rest, samples, label_samples, root_dir)
+                        user_rank = fewshot(client, city, met, args.type_LLM, data_user_test, user_kws_train, map_rest_id2int, new_results_res_kw, num_kws_user, num_kws_rest, samples, label_samples, root_dir)
                     elif met == 'zeroshot':
                         user_rank = zeroshot(client, args.type_LLM, data_user_test, map_rest_id2int, new_results_res_kw, num_kws_user, num_kws_rest, root_dir)                                        
                 pre, rec, f1, ndcg = evalAll(user_rank, u2rs)

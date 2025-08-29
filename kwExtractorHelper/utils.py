@@ -154,8 +154,8 @@ def extract_raw_keywords_for_reviews(data, ofile, keep=['ADJ', 'NOUN', 'PROPN', 
 
 
 def load_split(sfile='./data/reviews/splits.json', city='singapore', setname='test'):
-	if city == "tripAdvisor":
-		sfile = './data/reviews/tripAdvisor_splits.json'
+	if city in ["tripAdvisor", "amazonBaby", "amazonVideo"]:
+		sfile = f'./data/reviews/{city}_splits.json'
 	return json.load(open(sfile))[city][setname]
 
 

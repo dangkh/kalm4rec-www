@@ -1,3 +1,21 @@
 ********** Result **********
 ********** Result **********
 ********** Result **********
+********** Result **********
+********** Result **********
+********** Result **********
+args: Namespace(city='tripAdvisor', quantity=20, seed=1001, edgeType='IUF', logResult='./log', export2LLMs=False, RetModel='MPG', numKW4FT=20, validTopK=20)
+Pre@20: 0.14657894736842106, Recall@20:0.439777805644657, F1@20:0.2133100376226821, NDCG@20:0.46587117045706405
+********** End **********
+********** Result **********
+args: Namespace(city='tripAdvisor', quantity=20, seed=1001, edgeType='IUF', logResult='./log', export2LLMs=True, RetModel='MPG', numKW4FT=20, validTopK=20)
+Pre@20: 0.14657894736842106, Recall@20:0.439777805644657, F1@20:0.2133100376226821, NDCG@20:0.46824439947287516
+********** End **********
+********** Result **********
+args: Namespace(city='amazonBaby', quantity=20, seed=1001, edgeType='IUF', logResult='./log', export2LLMs=True, RetModel='MPG', numKW4FT=20, validTopK=20)
+Pre@20: 0.11374663072776281, Recall@20:0.309237028573514, F1@20:0.15396187850023416, NDCG@20:0.4046585417325184
+********** End **********
+********** Result **********
+args: Namespace(city='amazonVideo', quantity=20, seed=1001, edgeType='IUF', logResult='./log', export2LLMs=True, RetModel='MPG', numKW4FT=20, validTopK=20)
+Pre@20: 0.09921875000000001, Recall@20:0.19879286052921905, F1@20:0.12126573191255803, NDCG@20:0.33881320485173
+********** End **********
