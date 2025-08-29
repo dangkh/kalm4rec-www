@@ -295,7 +295,7 @@ if __name__ == '__main__':
                     file.write("\n")
 
                 if args.type_LLM == 'gemini_pro':
-                    client = genai.Client(api_key="AIzaSyAr_JH8EFd27kXVm3tBwbHbYOqDkMpLgps")
+                    client = genai.Client(api_key="")
                     if met in ['1_shot', '2_shots', '3_shots']:
                         user_rank = fewshot(client, city, met, args.type_LLM, data_user_test, user_kws_train, map_rest_id2int, new_results_res_kw, num_kws_user, num_kws_rest, samples, label_samples, root_dir)
                     elif met == 'zeroshot':
