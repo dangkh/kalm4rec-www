@@ -73,6 +73,7 @@ if __name__ == '__main__':
     parser.add_argument('--type_method', type=str, default= 'zeroshot', help='zeroshot, 3_shots')
     parser.add_argument('--type_LLM', type=str, default='gemini_pro', help='LLama, Gema')
     parser.add_argument('--baseline', type=bool, default=False, help='print baseline')
+    parser.add_argument('--use_tuning', type=bool, default=False, help='use pretrained or use tunModel')
     args = parser.parse_args()
 
 
