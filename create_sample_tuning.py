@@ -79,7 +79,7 @@ if __name__ == '__main__':
     alphabet = string.ascii_uppercase
     letters = alphabet[:20]
 
-    with open(f"./data/out2LLMs/tuningData_{city}.json", "r") as f:
+    with open(f"./data/out2LLMs/retrievalSample_{city}.json", "r") as f:
         loaded_data = json.load(f)
 
     listPosNeg = []
@@ -155,8 +155,6 @@ if __name__ == '__main__':
         limitNode = 1
         listData.append((lu, lc, label))
 
-    stop
-
     # mct
     counterAppear = [0] * len(letters)
     listTrain = []
@@ -177,5 +175,5 @@ if __name__ == '__main__':
         print(l, c)
 
     len(listTrain)
-    with open(f'train_dataFull_{city}.json', 'w', encoding='utf-8') as f:
+    with open(f'./data/out2LLMs/train_data_{city}.json', 'w', encoding='utf-8') as f:
         json.dump(listTrain, f, ensure_ascii=False, indent=2)    

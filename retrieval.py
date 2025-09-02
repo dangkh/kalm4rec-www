@@ -168,7 +168,7 @@ if args.tuningData:
         score = quick_eval(result, groundtruth, args.city=='tripAdvisor')
         lResults.append(score)
 
-    with open(f"./data/out2LLMs/tuningData_{args.city}.json", "w") as f:
+    with open(f"./data/out2LLMs/retrievalSample_{args.city}.json", "w") as f:
         json.dump(prediction, f)
     p, r, f, mn = extractResult(lResults)
     

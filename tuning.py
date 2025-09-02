@@ -14,23 +14,29 @@ import torch.nn.functional as F
 from trl import SFTTrainer
 from transformers import TrainingArguments
 from unsloth import is_bfloat16_supported
-
-alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
-
-    ### Instruction:
-    You are a restaurant recommender system. Given the keywords representing both the user and the restaurants, where each restaurant is identified by a letter (A, B,...,T), your task is:
-    First, Rerank the restaurants based on how semantically relevant and suitable their keywords are to the user’s preferences, rather than simply matching identical words. Consider the meaning and context of the keywords to determine suitability. Focus on the top 5 most suitable restaurants.
-    Then, respond with a single uppercase letter representing the most suitable restaurant. After that, add a section titled `### Note` containing a list of all possible restaurants (letters), ordered from most to least suitable.
+from datasets import Dataset
+from datasets import load_dataset
 
 
-    ### Input:
-    These are the keywords that user often mention when wanting to choose restaurants: {}.
-    The restaurant with the associated keywords have the following form: A: (keyword 1, keyword 2,...) are: \n
-    {}
+alpaca_prompt_tunning = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
-    ### Response:
-    The most suitable restaurant is"""
+### Instruction:
+You are a restaurant recommender system. Given the keywords representing both the user and the restaurants, where each restaurant is identified by a letter in a multiple-choice list, your task is:
+First, Rerank the restaurants (by their letters) based on how semantically relevant and suitable their keywords are to the user’s preferences, rather than simply matching identical words. Consider the meaning and context of the keywords to determine suitability. Focus on the top 5 most suitable restaurants.
+Then, respond with a single uppercase letter representing the most suitable restaurant. After that, add a section titled `### Note` containing a list of all possible restaurants (letters).
 
+### Input:
+These are the keywords that user often mention when wanting to choose restaurants: {}.
+The restaurant with the associated keywords have the following form: A: (keyword 1, keyword 2,...) are: \n
+{}
+
+### Response:
+The most suitable restaurant is {}."""
+
+auxilliary = """
+### NOTE: All possible Restaurants:
+{}
+"""
 def predict_answer(model, input_prompt):
     inputs = tokenizer([input_prompt], return_tensors="pt").to(model.device)
 
@@ -63,6 +69,8 @@ def predict_answer(model, input_prompt):
     res = [x for x, v in top_tokens]
     return res
 
+def formatting_prompts_func(data):
+    return {"text": alpaca_prompt_tunning.format(data["user"], data["input"], data["top"]) + auxilliary.format(data["output"]) + EOS_TOKEN}
 
 if __name__ == '__main__':
     listcity = ['edinburgh', 'london', 'singapore', 'tripAdvisor', 'amazonBaby', 'amazonVideo']
@@ -71,8 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--pretrainName', type=str, default='None', help='name of pretrained model')
     parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcl: multiple choice + list, list')
     parser.add_argument('--type_method', type=str, default= 'zeroshot', help='zeroshot, 3_shots')
-    parser.add_argument('--type_LLM', type=str, default='gemini_pro', help='LLama, Gema')
-    parser.add_argument('--baseline', type=bool, default=False, help='print baseline')
+    parser.add_argument('--type_LLM', type=str, default='LLama', help='LLama, Mistral')
     args = parser.parse_args()
 
 
@@ -94,13 +101,7 @@ if __name__ == '__main__':
     gt_file = 'data/reviews/{}.csv'.format(args.city)
     gt, u2rs, map_rest_id2int = prepare_user2rests(gt_file, is_tripAdvisor = is_tripAdvisor)
     train_res_kw = get_kw_for_rest(rest_kws, map_rest_id2int)
-    if args.baseline:
-        print('baseline')
-        print(city)
-        user_dict = {}
-        for uid in data_user_test.keys():
-            user_dict[uid] = [map_rest_id2int[can] for can in data_user_test[uid]['candidate']]
-        evalAll(user_dict, u2rs)
+    
 
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = "unsloth/Meta-Llama-3.1-8B",
@@ -123,23 +124,42 @@ if __name__ == '__main__':
         loftq_config = None, # And LoftQ
     )
 
-    FastLanguageModel.for_inference(model)
-    for kws_for_user in [4, 5]:
-        for kws_for_rest in [5, 6, 8, 10]:
-            user_rank = dict()
-            print("\n")
-            print(f'kws_for_user: {kws_for_user}, kws_for_rest: {kws_for_rest} \n')
-            for uid in tqdm(data_user_test.keys(), total=len(data_user_test)):
-                user_kw = data_user_test[uid]['kw'][:kws_for_user]
-                tmp_str, choices, tmp_str2 = cand_kw_fnMCT(uid, train_res_kw, data_user_test, map_rest_id2int, 20, kws_for_rest)
-                input_prompt = alpaca_prompt.format(', '.join(user_kw), tmp_str)
-                print(input_prompt)
-                stop
-                predicted_answer = predict_answer(model, input_prompt)
-                candidate = data_user_test[uid]['candidate']
-                answer = [candidate[ord(x)-ord('A')] for x in predicted_answer]
-                answer = [map_rest_id2int[can] for can in answer]
-                user_rank[uid] = answer
-
-            evalAll(user_rank, u2rs)
+    EOS_TOKEN = tokenizer.eos_token
     
+
+    dataset = load_dataset("json", data_files=f"./data/out2LLMs/train_data_{city}.json", split='train')
+    restaurantDataset = dataset.map(formatting_prompts_func)
+    print(restaurantDataset[0])
+
+
+    trainer = SFTTrainer(
+        model = model,
+        tokenizer = tokenizer,
+        train_dataset = restaurantDataset,
+        dataset_text_field = "text",
+        response_template="### Response:\nThe most suitable restaurant is",  # << gồm cả khoảng trắng cuối
+        train_on_prompt=False,      # << chỉ tính loss sau response_template
+        max_seq_length = max_seq_length,
+        dataset_num_proc = 2,
+        packing = False, # Can make training 5x faster for short sequences.
+        args = TrainingArguments(
+            per_device_train_batch_size = 2,
+            gradient_accumulation_steps = 4,
+            warmup_steps = 10,
+            num_train_epochs = 1, # Set this for 1 full training run.
+            max_steps = 1,
+            learning_rate = 2e-4,
+            fp16 = not is_bfloat16_supported(),
+            bf16 = is_bfloat16_supported(),
+            logging_steps = 1,
+            optim = "adamw_torch",
+            weight_decay = 0.01,
+            lr_scheduler_type = "linear",
+            seed = 3407,
+            output_dir = "outputs",
+            report_to = "none", # Use this for WandB etc
+        ),
+    )
+
+    trainer_stats = trainer.train()
+
