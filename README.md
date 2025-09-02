@@ -1,7 +1,7 @@
 # KALM4Rec
 ## Keyword-driven Retrieval-Augmented Large Language Models for Cold-start User Recommendations 
 <p align="center">
-<img src="./imgs/pipeline.pdf" alt="ALM4Res" />
+<img src="./imgs/0.png" alt="ALM4Res" />
 </p>
 
 ## Dependencies
