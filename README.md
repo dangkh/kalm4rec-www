@@ -44,8 +44,6 @@ python retrieval.py --city singapore --edgeType IUF
 ```
 
 #### Args
-> `RetModel`: models.
->
 > `edgeType`: build a KNN model to obtain most similar keyword in case of missing for testing user.
 >
 > `tuningData`: boolean, export tuning data or not

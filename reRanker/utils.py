@@ -3,6 +3,7 @@ import pandas as pd
 import random
 import numpy as np
 from sklearn.metrics import ndcg_score
+import string
 
 def read_json(file_path):
     with open(file_path, "r") as file:
@@ -46,6 +47,24 @@ def cand_kw_fn(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, topKW
                 cand_kw[map_rest_id2int[cand]] = []
     result_string = ', '.join(f'{key} ({", ".join(value)})' for key, value in cand_kw.items())
     return result_string
+
+def cand_kw_fnMCT(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, topKWs = 20):
+    alphabet = string.ascii_uppercase
+    letters = alphabet[:20]
+    cand_kw = {}
+    for cand in data[uid_]['candidate'][: topCandidates]:
+            if map_rest_id2int[cand] in result_dict:
+                if len(result_dict[map_rest_id2int[cand]]) > topKWs:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]][:topKWs]
+                else:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]]
+            else:
+                cand_kw[map_rest_id2int[cand]] = []
+    result_string = ' '.join(f'{letters[index]} : ({", ".join(value)}) ;\n' for index, (key, value) in enumerate(cand_kw.items()))
+    result_string2 = [f'{", ".join(value)}.\n' for index, (key, value) in enumerate(cand_kw.items())]
+    choices = [key for key in cand_kw.keys()]
+    return result_string, choices, result_string2
+
 
 ### retrieve the keywords for candidate restaurant and return them as a string, in fewshot cases.
 def cand_kw_fn_fewshot(uid_, result_dict, data_, map_rest_id2int, topCandidates = 20, topKWs = 20):

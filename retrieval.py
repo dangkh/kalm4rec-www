@@ -31,9 +31,9 @@ parser.add_argument('--export2LLMs', action='store_true', help='whether export l
 '''
 Model args
 '''
-parser.add_argument('--RetModel', type=str, default='MPG', help='Jaccard, MF, MVAE, CLCp, MPG_old, MPG')
 parser.add_argument('--numKW4FT', type=int, default=20, help='number of keyword for feature')
 parser.add_argument('--validTopK', type=int, default=20, help='number of keyword for feature')
+parser.add_argument('--tuningData', type=bool, default=True, help='Tuning Data')
 
 
 args = parser.parse_args()
@@ -146,6 +146,36 @@ k = args.validTopK
 print(f'Pre@{k}: {mean(p)}, Recall@{k}:{mean(r)}, F1@{k}:{mean(f)}, NDCG@{k}:{mean(n)}', file = sourceFile)
 print('*'*10, 'End' ,'*'*10, file = sourceFile)
 sourceFile.close()
+
+
+if args.tuningData:
+    lidx = [x for x in range(len(train_users))]
+    prediction = []
+    for ite in tqdm(range(len(train_users))):
+        idx = lidx[ite]
+        testUser, topK_Key, keyfrequency, topUser = procesTest(train_users, train_users2kw, idx, KNN, restGraph, args.export2LLMs, True)
+        testkey = [kw_data.index(x) for x in topK_Key]
+        ft = np.zeros(len(kw_data))
+        for x in testkey: ft[x] = 1.0
+        ft = ft.reshape(-1, 1)
+        tmp = np.matmul(adj, ft).reshape(-1)
+        idxrest = np.argsort(tmp)[::-1]
+        result = [l_rest[x] for x in idxrest[:args.quantity]]
+        result2 = [rest_Label.index(x) for x in result]
+        prediction.append(result2)
+        groundtruth = gt[testUser]
+
+        score = quick_eval(result, groundtruth, args.city=='tripAdvisor')
+        lResults.append(score)
+
+    with open(f"./data/out2LLMs/tuningData_{args.city}.json", "w") as f:
+        json.dump(prediction, f)
+    p, r, f, mn = extractResult(lResults)
+    
+    print("args:", args)
+    print(mean(p), mean(r), mean(f), mean(mn))
+
+
 print("End time: ", time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time())))
 
 

@@ -128,10 +128,11 @@ def extractResult(lResults):
     return p, r, f, n
 
 
-def procesTest(test_users, test_users2kw, idx, KNN, restGraph, returnTop = False):
+def procesTest(test_users, test_users2kw, idx, KNN, restGraph, returnTop = False, trainUser = False):
     testUser = test_users[idx]
     testkey = test_users2kw[idx]
-    testkey = KNN.get_topK_Key(testkey)
+    if not trainUser:
+        testkey = KNN.get_topK_Key(testkey)
 
     topK_Key, keyfrequency = restGraph.retrievalKey(testkey)
     if returnTop:
@@ -167,4 +168,8 @@ class regionHelper(object):
 
 
 
-        
+def label_ftColab(train_users, test_users, gt, no_rest, rest_Label):
+    label_train = gt2label(train_users, gt, no_rest, "label_train.npy", rest_Label)
+    label_test = gt2label(test_users, gt, no_rest, "label_test.npy", rest_Label)
+
+    return label_train, label_test       
