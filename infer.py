@@ -102,26 +102,20 @@ if __name__ == '__main__':
             user_dict[uid] = [map_rest_id2int[can] for can in data_user_test[uid]['candidate']]
         evalAll(user_dict, u2rs)
 
-    model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name = "unsloth/Meta-Llama-3.1-8B",
-        max_seq_length = 4096,
-        dtype = None,
-        load_in_4bit = None,
-    )
-
-    model = FastLanguageModel.get_peft_model(
-        model,
-        r = 16, 
-        target_modules = ["q_proj", "k_proj", "v_proj", "o_proj",
-                          "gate_proj", "up_proj", "down_proj",],
-        lora_alpha = 16,
-        lora_dropout = 0, # Supports any, but = 0 is optimized
-        bias = "none",    # Supports any, but = "none" is optimized
-        use_gradient_checkpointing = "unsloth", # True or "unsloth" for very long context
-        random_state = 3407,
-        use_rslora = False,  # We support rank stabilized LoRA
-        loftq_config = None, # And LoftQ
-    )
+    if args.use_tuning:
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name = f"{city}_tunModel",
+            max_seq_length = 4096,
+            dtype = None,
+            load_in_4bit = None,
+        )
+    else:
+        model, tokenizer = FastLanguageModel.from_pretrained(
+            model_name = "unsloth/Meta-Llama-3.1-8B",
+            max_seq_length = 4096,
+            dtype = None,
+            load_in_4bit = None,
+        )
 
     FastLanguageModel.for_inference(model)
     for kws_for_user in [4, 5]:

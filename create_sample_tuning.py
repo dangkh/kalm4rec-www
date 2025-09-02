@@ -98,9 +98,9 @@ if __name__ == '__main__':
 
 
     listData = []
-    firstMove = 30
-    oneNeg = 50
-    onePos = 70
+    firstMove = 10
+    oneNeg = 30
+    onePos = 50
     cnt = 0
     # keep huge part is not being change to learn the pattern
     for uid, pos_items, sampled_neg_items in tqdm(listPosNeg):

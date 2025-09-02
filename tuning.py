@@ -139,7 +139,7 @@ if __name__ == '__main__':
         dataset_text_field = "text",
         response_template="### Response:\nThe most suitable restaurant is",  # << gồm cả khoảng trắng cuối
         train_on_prompt=False,      # << chỉ tính loss sau response_template
-        max_seq_length = max_seq_length,
+        max_seq_length = 4096,
         dataset_num_proc = 2,
         packing = False, # Can make training 5x faster for short sequences.
         args = TrainingArguments(
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             gradient_accumulation_steps = 4,
             warmup_steps = 10,
             num_train_epochs = 1, # Set this for 1 full training run.
-            max_steps = 1,
+            # max_steps = 1,
             learning_rate = 2e-4,
             fp16 = not is_bfloat16_supported(),
             bf16 = is_bfloat16_supported(),
@@ -163,3 +163,5 @@ if __name__ == '__main__':
 
     trainer_stats = trainer.train()
 
+    model.save_pretrained(f"{city}_tunModel")
+    tokenizer.save_pretrained(f"{city}_tunModel")
