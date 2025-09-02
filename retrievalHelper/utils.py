@@ -85,11 +85,6 @@ def getRestLB(data):
               rest_Label.append(rest)
     return rest_Label
 
-def label_ftColab(train_users, test_users, gt, no_rest, rest_Label):
-    label_train = gt2label(train_users, gt, no_rest, "label_train.npy", rest_Label)
-    label_test = gt2label(test_users, gt, no_rest, "label_test.npy", rest_Label)
-
-    return label_train, label_test
 
 def gt2label(list_user, gt, no_rest, filename, rest_Label):
     LB = []
@@ -129,13 +124,15 @@ def extractResult(lResults):
     p = [x[0] for x in lResults]
     r = [x[1] for x in lResults]
     f = [x[2] for x in lResults]
-    return p, r, f
+    n = [x[3] for x in lResults]
+    return p, r, f, n
 
 
-def procesTest(test_users, test_users2kw, idx, KNN, restGraph, returnTop = False):
+def procesTest(test_users, test_users2kw, idx, KNN, restGraph, returnTop = False, trainUser = False):
     testUser = test_users[idx]
     testkey = test_users2kw[idx]
-    testkey = KNN.get_topK_Key(testkey)
+    if not trainUser:
+        testkey = KNN.get_topK_Key(testkey)
 
     topK_Key, keyfrequency = restGraph.retrievalKey(testkey)
     if returnTop:
@@ -168,4 +165,11 @@ class regionHelper(object):
             tmp = np.where(self.rest2city == reg)[0]
             marker[tmp] = 1
         return marker
-        
+
+
+
+def label_ftColab(train_users, test_users, gt, no_rest, rest_Label):
+    label_train = gt2label(train_users, gt, no_rest, "label_train.npy", rest_Label)
+    label_test = gt2label(test_users, gt, no_rest, "label_test.npy", rest_Label)
+
+    return label_train, label_test       

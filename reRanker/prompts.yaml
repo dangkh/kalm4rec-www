@@ -1,0 +1,134 @@
+chatGPT:
+  1_shot: |
+    You are a restaurant recommendation system. You recommend restaurant for new user who only provide a few keywords to indicate preference. 
+    You are given a list of keywords provided by new user, a list of candidate restaurants (Format: [restaurant_1, restaurant_2,...]), and a list of keywords describing each restaurant in the following format restaurant_1 (keyword 1, keyword 2,...). You need to re-rank the restaurant candidates such that the restaurants ranked higher are the ones the user most likely wants to go. 
+    Below are the examples for your reference. 
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Based on the example above, please perform the following task:
+    These are keywords describing my preference: {}.
+    The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+    Output: Must include 15 restaurants in the candidate set. No explanation. Desired format is string: restaurant_1, restaurant_2, ... 
+  2_shots: |
+    You are a restaurant recommendation system. You recommend restaurant for new user who only provide a few keywords to indicate preference. 
+    You are given a list of keywords provided by new user, a list of candidate restaurants (Format: [restaurant_1, restaurant_2,...]), and a list of keywords describing each restaurant in the following format restaurant_1 (keyword 1, keyword 2,...). You need to re-rank the restaurant candidates such that the restaurants ranked higher are the ones the user most likely wants to go. 
+    Below are the examples for your reference. 
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Based on the examples above, please perform the following task:
+    These are keywords describing my preference: {}.
+    The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+    Output: Must include 15 restaurants in the candidate set. No explanation. Desired format is string: restaurant_1, restaurant_2, ... 
+  3_shots: |
+    You are a restaurant recommendation system. You recommend restaurant for new user who only provide a few keywords to indicate preference. 
+    You are given a list of keywords provided by new user, a list of candidate restaurants (Format: [restaurant_1, restaurant_2,...]), and a list of keywords describing each restaurant in the following format restaurant_1 (keyword 1, keyword 2,...). You need to re-rank the restaurant candidates such that the restaurants ranked higher are the ones the user most likely wants to go. 
+    Below are the examples for your reference. 
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Input keywords: {}. 
+    Restaurant list: {}. 
+    Restaurant-keyword: {}. 
+    Output: {} 
+
+    Based on the examples above, please perform the following task:
+    These are keywords describing my preference: {}.
+    The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+    Output: Must include 15 restaurants in the candidate set. No explanation. Desired format is string: restaurant_1, restaurant_2, ... 
+gemini_pro:
+  1_shot: |
+    Assume you are a restaurant recommendation system. For example: 
+    There are the keywords that user often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for user is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    You should rank a list of recommendations for user as follows: {}
+
+    Based on the example above, where those users exhibit similar behavior to mine, please perform the following task:
+    There are the keywords that I often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+    Output: Must include 15 restaurants in the candidate set. No explanation. Desired format is string: restaurant_1, restaurant_2, ... 
+  3_shots: |
+    Assume you are an Amazon e-commerce recommendation system. For example: 
+    Example 1: There are the keywords that user often mention when wanting to choose items: {}.  
+    The candidate item set for user is enclosed in square brackets, with the items separated by commas (Format: [item_1, item_2,...]) is: {}  
+    Keywords associated with candidate items have the following form: item_1 (keyword 1, keyword 2,...) are {}.  
+    You should rank a list of recommendations for user as follows: {}  
+    Example 2: There are the keywords that user often mention when wanting to choose items: {}.  
+    The candidate item set for user is enclosed in square brackets, with the items separated by commas (Format: [item_1, item_2,...]) is: {}  
+    Keywords associated with candidate items have the following form: item_1 (keyword 1, keyword 2,...) are {}.  
+    You should rank a list of recommendations for user as follows: {}  
+    Example 3: There are the keywords that user often mention when wanting to choose items: {}.  
+    The candidate item set for user is enclosed in square brackets, with the items separated by commas (Format: [item_1, item_2,...]) is: {}  
+    Keywords associated with candidate items have the following form: item_1 (keyword 1, keyword 2,...) are {}.  
+    You should rank a list of recommendations for user as follows: {}  
+
+    Based on 3 examples above, please perform the following task:  
+    There are the keywords that I often mention when wanting to choose items: {}.  
+    The candidate item set for me is enclosed in square brackets, with the items separated by commas (Format: [item_1, item_2,...]) is: {}  
+    Keywords associated with candidate items have the following form: item_1 (keyword 1, keyword 2,...) are {}.  
+
+    Input: Please suggest the 15 most suitable items for me from the candidate set that I will purchase, according to the user and candidate item keywords I provided above.  
+    Output: Must include 15 items in the candidate set, FOCUS on top 3. No explanation. Desired format is string: item_1, item_2, ...  
+  3_shots_yelp: |
+    Assume you are a restaurant recommendation system. For example: 
+    Example 1: There are the keywords that user often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for user is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    You should rank a list of recommendations for user as follows: {}
+    Example 2: There are the keywords that user often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for user is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    You should rank a list of recommendations for user as follows: {}
+    Example 3: There are the keywords that user often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for user is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    You should rank a list of recommendations for user as follows: {}
+    Based on 3 examples above, please perform the following task:
+    There are the keywords that I often mention when wanting to choose restaurants: {}.
+    The candidate restaurant set for me is enclosed in square brackets, with the restaurants separated by commas (Format: [restaurant_1, restaurant_2,...]) is: {}
+    Keywords associated with candidate restaurants have the following form: restaurant_1 (keyword 1, keyword 2,...) are {}.
+    Input: Please suggest the 15 most suitable restaurants for me from the candidate set that I will visit them, according to the user and candidate restaurant keywords I provided above.
+    Output: Must include 15 restaurants in the candidate set. No explanation. Desired format is string: restaurant_1, restaurant_2, ... 
+llama:
+  zero_shots_yelp: |
+    alpaca_prompt = Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+    ### Instruction:
+    You are a restaurant recommender system. Given the keywords representing both the user and the restaurants, where each restaurant is identified by a letter (A, B,...,T), your task is:
+    First, Rerank the restaurants based on how semantically relevant and suitable their keywords are to the user’s preferences, rather than simply matching identical words. Consider the meaning and context of the keywords to determine suitability. Focus on the top 5 most suitable restaurants.
+    Then, respond with a single uppercase letter representing the most suitable restaurant. After that, add a section titled `### Note` containing a list of all possible restaurants (letters), ordered from most to least suitable.
+
+
+    ### Input:
+    These are the keywords that user often mention when wanting to choose restaurants: {}.
+    The restaurant with the associated keywords have the following form: A: (keyword 1, keyword 2,...) are: \n
+    {}
+
+    ### Response:
+    The most suitable restaurant is

@@ -1,6 +1,9 @@
 import json
 import pandas as pd
 import random
+import numpy as np
+from sklearn.metrics import ndcg_score
+import string
 
 def read_json(file_path):
     with open(file_path, "r") as file:
@@ -45,6 +48,24 @@ def cand_kw_fn(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, topKW
     result_string = ', '.join(f'{key} ({", ".join(value)})' for key, value in cand_kw.items())
     return result_string
 
+def cand_kw_fnMCT(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, topKWs = 20):
+    alphabet = string.ascii_uppercase
+    letters = alphabet[:20]
+    cand_kw = {}
+    for cand in data[uid_]['candidate'][: topCandidates]:
+            if map_rest_id2int[cand] in result_dict:
+                if len(result_dict[map_rest_id2int[cand]]) > topKWs:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]][:topKWs]
+                else:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]]
+            else:
+                cand_kw[map_rest_id2int[cand]] = []
+    result_string = ' '.join(f'{letters[index]} : ({", ".join(value)}) ;\n' for index, (key, value) in enumerate(cand_kw.items()))
+    result_string2 = [f'{", ".join(value)}.\n' for index, (key, value) in enumerate(cand_kw.items())]
+    choices = [key for key in cand_kw.keys()]
+    return result_string, choices, result_string2
+
+
 ### retrieve the keywords for candidate restaurant and return them as a string, in fewshot cases.
 def cand_kw_fn_fewshot(uid_, result_dict, data_, map_rest_id2int, topCandidates = 20, topKWs = 20):
     cand_kw = {}
@@ -87,23 +108,6 @@ def get_kw_for_rest(rest_kws, map_rest_id2int ):
         new_results_res_kw[map_rest_id2int[res]] = kws
     return new_results_res_kw
 
-def quick_eval(preds, gt):
-    '''
-    - preds: [list of restaurants]
-    - GT: [('wrdLrTcHXlL4UsiYn3cgKQ', 4.0), ('uG59lRC-9fwt64TCUHnuKA', 3.0)]
-    - 
-    '''
-    gt_list = set([a[0] for a in gt])
-    preds_list = list(set(preds))
-    ov = gt_list.intersection(preds_list)
-    prec = len(ov)/len(preds_list)
-    if len(gt_list) !=0:
-        rec = len(ov)/len(gt_list)
-    else: rec = 0
-    f1 = 0 if prec+rec == 0 else 2*prec*rec/(prec+rec)
-    # print("Precision: {}, Recall: {}, F1: {}".format(prec, rec, f1))
-    return prec, rec, f1
-
 def cand_rv_fn(uid_, data, map_rest_id2int, topCandidates = 20, res_rv_ = None):
     cand_rv = {}
     for cand in data[uid_]['candidate'][: topCandidates]:
@@ -112,22 +116,51 @@ def cand_rv_fn(uid_, data, map_rest_id2int, topCandidates = 20, res_rv_ = None):
     result_string = ', '.join(f'{key} ({value})' for key, value in cand_rv.items())
     return result_string
 
-
-def ndcgEval(preds, gt):
+def quick_eval(preds, gt, hotel = False):
     '''
     - preds: [list of restaurants]
     - GT: [('wrdLrTcHXlL4UsiYn3cgKQ', 4.0), ('uG59lRC-9fwt64TCUHnuKA', 3.0)]
     - 
     '''
     gt_list = set([a[0] for a in gt])
+    if hotel:
+        gt_list = set([str(a[0]) for a in gt])
+
     preds_list = list(set(preds))
     ov = gt_list.intersection(preds_list)
+    prec = len(ov)/len(preds_list)
+    rec = len(ov)/len(gt_list)
+    f1 = 0 if prec+rec == 0 else 2*prec*rec/(prec+rec)
+
     truth_relevant = np.asarray([[0]*len(preds)])
     if len(preds) == 1:
-        return len(ov)/len(preds_list)
+        ndcg = len(ov)/len(preds_list)
+        return prec, rec, f1, ndcg
     for candidate in ov:
         idx = preds_list.index(candidate)
         truth_relevant[0,idx] = 1
 
     score = np.asarray([[x+1 for x in range(len(preds))][::-1]])
-    return ndcg_score(truth_relevant, score)
+    ndcg = ndcg_score(truth_relevant, score)
+    return prec, rec, f1, ndcg
+
+def evalAll(user_rank, groundtruth, is_base = False):
+    evalK = [1,3,5,10,15,20]
+    allPrec, allRec, allF1, allNdcg = [],[],[], []
+    selectedKeys = list(user_rank.keys())[:1000]
+    for k in evalK:
+        prec_final, rec_final, f1_final, ndcg_final = [],[],[], []
+        for uid in selectedKeys:
+            pred =  [int(px) for px in user_rank[uid]]
+            prec, rec, f1, ndcg= quick_eval(pred[:k], groundtruth[uid])
+            prec_final.append(prec)
+            rec_final.append(rec) 
+            f1_final.append(f1) 
+            ndcg_final.append(ndcg) 
+        print(f'Precision@{k}: {np.mean(prec_final)}, recall@{k}: {np.mean(rec_final)}, f1@{k}: {np.mean(f1_final)} ndcg@{k}: {np.mean(ndcg_final)}')
+        allPrec.append(np.mean(prec_final))
+        allRec.append(np.mean(rec_final))
+        allF1.append(np.mean(f1_final))
+        allNdcg.append(np.mean(ndcg_final))
+    print(len(selectedKeys))
+    return allPrec, allRec, allF1, allNdcg
