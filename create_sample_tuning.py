@@ -89,22 +89,20 @@ if __name__ == '__main__':
         selected = loaded_data[uid]
         pos = [x for x in selected if x in interacted]
         neg = [x for x in selected if x not in interacted]
-        listPosNeg.append((uid, pos, neg))
+        listPosNeg.append((uid, selected, pos, neg))
 
 
     random.shuffle(listPosNeg)
     len(listPosNeg)   
     listPosNeg = listPosNeg[:2000] 
 
-
     listData = []
-    firstMove = 10
-    oneNeg = 30
-    onePos = 50
-    cnt = 0
+    counter = 0
+    shuffle = 20
+    hardsample = 40
+
     # keep huge part is not being change to learn the pattern
-    for uid, pos_items, sampled_neg_items in tqdm(listPosNeg):
-        cnt += 1
+    for uid, interacted, pos_items, sampled_neg_items in tqdm(listPosNeg):
         if len(sampled_neg_items) + len(pos_items) != 20:
             continue
         if len(sampled_neg_items) == 20:
@@ -115,45 +113,33 @@ if __name__ == '__main__':
         lu = [x for x,y in lus]
         negs = [x for x in sampled_neg_items]
         poss = [x for x in pos_items]
-        # print("*"*20)
-        # print(len(poss), len(negs))
         
-        random.shuffle(negs)
-        random.shuffle(poss)
-        candidate = [x for x in poss]
-        candidate.extend(negs)
         
         tmp = random.randint(1,100)
-        if tmp <= firstMove:
-            # move A (top) positive item to random place in negative group
-            randPosition = random.randint(len(poss), 19)
-            candidate[0] = candidate[randPosition]
-            candidate[randPosition] = poss[0]
-        elif tmp <= oneNeg:
-            # move a negative to a random place in positive group
-            randPosition = random.randint(0, min(len(poss)-1, 3))
-            randNegItem = random.randint(0, len(negs)-1)
-            newCandidate = [x for x in poss]
-            newCandidate.insert(negs[randNegItem], randPosition)
-            for x in negs:
-                if x != negs[randNegItem]:
-                    newCandidate.append(x)
-        elif tmp <= onePos:
-            # move a positie to a random place in negative group
-            randPosItem = random.randint(0, min(len(poss)-1, 3))
-            randPosition = random.randint(len(poss), 19)
-            negPlace = randPosition-len(poss)
-            candidate[randPosition] = candidate[randPosItem]
-            candidate[randPosItem] = negs[negPlace]     
-            
-        label = [candidate.index(x) for x in poss]
-        labelPos = [candidate.index(x) for x in poss]
-        labelNeg = [candidate.index(x) for x in negs]
-        labelPos.extend(labelNeg)
+        if tmp < shuffle:
+            random.shuffle(negs)
+            random.shuffle(poss)
+        candidate = []
+        negcount = 0
+        poscount = 0
+        for x in interacted:
+            if x in poss:
+                candidate.append(poss[poscount])
+                poscount += 1
+            else:
+                candidate.append(negs[negcount])
+                negcount += 1
+        if (tmp < hardsample) and (tmp > shuffle):
+            randPosition = random.randint(0, len(negs)-1)
+            negPos = candidate.index(negs[randPosition])
+            posPos = candidate.index(poss[0])
+            candidate[posPos] = candidate[negPos]
+            candidate[negPos] = poss[0]
+        
+        outLb = [candidate.index(x) for x in poss]
         lc = [train_res_kw[x][:args.kws_for_rest] for x in candidate]
-        counterpos = 0
-        limitNode = 1
-        listData.append((lu, lc, label))
+        listData.append((lu, lc,outLb))
+
 
     # mct
     counterAppear = [0] * len(letters)
