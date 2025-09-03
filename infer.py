@@ -120,7 +120,7 @@ if __name__ == '__main__':
 
     FastLanguageModel.for_inference(model)
     for kws_for_user in [4, 5]:
-        for kws_for_rest in [5, 6, 8, 10]:
+        for kws_for_rest in [5, 6, 8, 10, 15]:
             user_rank = dict()
             print("\n")
             print(f'kws_for_user: {kws_for_user}, kws_for_rest: {kws_for_rest} \n')
@@ -128,8 +128,6 @@ if __name__ == '__main__':
                 user_kw = data_user_test[uid]['kw'][:kws_for_user]
                 tmp_str, choices, tmp_str2 = cand_kw_fnMCT(uid, train_res_kw, data_user_test, map_rest_id2int, 20, kws_for_rest)
                 input_prompt = alpaca_prompt.format(', '.join(user_kw), tmp_str)
-                print(input_prompt)
-                stop
                 predicted_answer = predict_answer(model, input_prompt)
                 candidate = data_user_test[uid]['candidate']
                 answer = [candidate[ord(x)-ord('A')] for x in predicted_answer]

@@ -17,6 +17,12 @@ from unsloth import is_bfloat16_supported
 from datasets import Dataset
 from datasets import load_dataset
 
+local_rank = int(os.environ.get("LOCAL_RANK", 0))
+torch.cuda.set_device(local_rank)
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"  # tránh num_proc=68
+device_map = {"": local_rank}
+
 
 alpaca_prompt_tunning = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
@@ -106,8 +112,9 @@ if __name__ == '__main__':
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name = "unsloth/Meta-Llama-3.1-8B",
         max_seq_length = 4096,
-        dtype = None,
-        load_in_4bit = None,
+        dtype = torch.bfloat16,
+        load_in_4bit = True,
+        device_map = device_map,
     )
 
     model = FastLanguageModel.get_peft_model(
@@ -140,10 +147,10 @@ if __name__ == '__main__':
         response_template="### Response:\nThe most suitable restaurant is",  # << gồm cả khoảng trắng cuối
         train_on_prompt=False,      # << chỉ tính loss sau response_template
         max_seq_length = 4096,
-        dataset_num_proc = 2,
+        dataset_num_proc = 0,
         packing = False, # Can make training 5x faster for short sequences.
         args = TrainingArguments(
-            per_device_train_batch_size = 2,
+            per_device_train_batch_size = 1,
             gradient_accumulation_steps = 4,
             warmup_steps = 10,
             num_train_epochs = 1, # Set this for 1 full training run.
@@ -158,6 +165,8 @@ if __name__ == '__main__':
             seed = 3407,
             output_dir = "outputs",
             report_to = "none", # Use this for WandB etc
+            gradient_checkpointing=False,
+            ddp_find_unused_parameters=False,
         ),
     )
 
@@ -165,3 +174,7 @@ if __name__ == '__main__':
 
     model.save_pretrained(f"{city}_tunModel")
     tokenizer.save_pretrained(f"{city}_tunModel")
+
+
+
+    
