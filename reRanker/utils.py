@@ -65,7 +65,23 @@ def cand_kw_fnMCT(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, to
     choices = [key for key in cand_kw.keys()]
     return result_string, choices, result_string2
 
+def cand_kw_fn_list(uid_, result_dict,data,map_rest_id2int, topCandidates = 20, topKWs = 20):
+    cand_kw = {}
+    for cand in data[uid_]['candidate'][: topCandidates]:
+            if map_rest_id2int[cand] in result_dict:
+                if len(result_dict[map_rest_id2int[cand]]) > topKWs:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]][:topKWs]
+                else:
+                    cand_kw[map_rest_id2int[cand]] = result_dict[map_rest_id2int[cand]]
+            else:
+                cand_kw[map_rest_id2int[cand]] = []
+    result_string = ' '.join(f'{key} : ({", ".join(value)}) ;\n' for index, (key, value) in enumerate(cand_kw.items()))
+    candi = [str(key) for index, (key, value) in enumerate(cand_kw.items())]
+    candi = ', '.join(candi)
 
+    return candi, result_string
+
+    
 ### retrieve the keywords for candidate restaurant and return them as a string, in fewshot cases.
 def cand_kw_fn_fewshot(uid_, result_dict, data_, map_rest_id2int, topCandidates = 20, topKWs = 20):
     cand_kw = {}
