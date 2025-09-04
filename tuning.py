@@ -85,7 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--pretrainName', type=str, default='None', help='name of pretrained model')
     parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcl: multiple choice + list, list')
     parser.add_argument('--type_method', type=str, default= 'zeroshot', help='zeroshot, 3_shots')
-    parser.add_argument('--type_LLM', type=str, default='LLama', help='LLama, Mistral')
+    parser.add_argument('--type_LLM', type=str, default='LLama', help='LLama, Gemma')
     args = parser.parse_args()
 
 
@@ -108,9 +108,11 @@ if __name__ == '__main__':
     gt, u2rs, map_rest_id2int = prepare_user2rests(gt_file, is_tripAdvisor = is_tripAdvisor)
     train_res_kw = get_kw_for_rest(rest_kws, map_rest_id2int)
     
-
+    model_name = "unsloth/Meta-Llama-3.1-8B"
+    if  args.type_LLM == "Gemma":
+        model_name = "unsloth/gemma-2-9b"
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name = "unsloth/Meta-Llama-3.1-8B",
+        model_name = model_name,
         max_seq_length = 4096,
         dtype = torch.bfloat16,
         load_in_4bit = True,
@@ -177,4 +179,3 @@ if __name__ == '__main__':
 
 
 
-    
