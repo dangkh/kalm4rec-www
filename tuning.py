@@ -173,9 +173,11 @@ if __name__ == '__main__':
     )
 
     trainer_stats = trainer.train()
-
-    model.save_pretrained(f"{city}_tunModel")
-    tokenizer.save_pretrained(f"{city}_tunModel")
+    saveName = f"{city}_tunModel"
+    if args.type_LLM == "Gemma":
+        saveName = f"Gemma_{city}_tunModel"
+    model.save_pretrained(saveName)
+    tokenizer.save_pretrained(saveName)
 
 
 
