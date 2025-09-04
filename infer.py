@@ -57,7 +57,7 @@ messages = [
         "content": [
             {
                 "type": "text",
-                "text": "The correct answer is",
+                "text": "The most suitable restaurant is",
             }
         ]
     }
