@@ -59,6 +59,7 @@ Candidate restaurants for user are (format: [restaurant_id_1, restaurant_id_2, .
 The restaurant with the associated keywords have the following form: restaurant_id_1: (keyword 1, keyword 2,...) are: \n
 {}
 
+Provide TOP 15 most suitable restaurants from the candidate set, ordered from most to least suitable.
 ### Response:
 {}"""
 
