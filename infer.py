@@ -131,6 +131,8 @@ if __name__ == '__main__':
         model_name = f"{city}_tunModel"
         if args.LLM == "Gemma":
             model_name = f"Gemma_{city}_tunModel"
+        if args.type == "list":
+            model_name += 'list'
     else:
         model_name = "unsloth/Meta-Llama-3.1-8B"
         if  args.LLM == "Gemma":
@@ -164,8 +166,6 @@ if __name__ == '__main__':
                     candilist, tmp_str = cand_kw_fn_list(uid, train_res_kw, data_user_test, map_rest_id2int, 20, kws_for_rest)
                     input_prompt = list_prompt.format(', '.join(user_kw), candilist, tmp_str)
                     output = get_answerList(model, input_prompt)
-                    print(output)
-                    stop
                     first_line = output.strip().split("\n")[0]
                     output = [int(x) for x in re.findall(r"\d+", first_line)]
                     answer = [int(outX) for outX in output]
