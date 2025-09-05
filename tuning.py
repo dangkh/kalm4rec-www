@@ -44,6 +44,21 @@ auxilliary = """
 {}
 """
 
+mcn_prompt_tunning = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+You are a restaurant recommender system. Given the keywords representing both the user and the restaurants, where each restaurant is identified by a letter in a multiple-choice list, your task is:
+First, Rerank the restaurants (by their letters) based on how semantically relevant and suitable their keywords are to the user’s preferences, rather than simply matching identical words. Consider the meaning and context of the keywords to determine suitability. Focus on the top 5 most suitable restaurants.
+Then, respond with a single uppercase letter representing the most suitable restaurant. 
+
+### Input:
+These are the keywords that user often mention when wanting to choose restaurants: {}.
+The restaurant with the associated keywords have the following form: A: (keyword 1, keyword 2,...) are: \n
+{}
+
+### Response:
+The most suitable restaurant is {}."""
+
 
 list_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
@@ -68,6 +83,9 @@ Provide TOP 15 most suitable restaurants from the candidate set, ordered from mo
 def formatting_prompts_func(data):
     return {"text": alpaca_prompt_tunning.format(data["user"], data["input"], data["top"]) + auxilliary.format(data["output"]) + EOS_TOKEN}
 
+def formatting_MCNprompts_func(data):
+    return {"text": mcn_prompt_tunning.format(data["user"], data["input"], data["top"]) + EOS_TOKEN}
+
 def formatting_list_prompts_func(data):
     return {"text": list_prompt.format(data["user"], data["candidate"], data["input"],  data["output"]) + EOS_TOKEN}
 
@@ -76,7 +94,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser('infer Kalm4Rec')
     parser.add_argument('--city', type=str, default='singapore', help=f'choose city{listcity}')
     parser.add_argument('--pretrainName', type=str, default='None', help='name of pretrained model')
-    parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcl: multiple choice + list, list')
+    parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcn: noNote, list')
     parser.add_argument('--LLM', type=str, default='LLama', help='LLama, Gemma')
     args = parser.parse_args()
 
@@ -131,12 +149,14 @@ if __name__ == '__main__':
     if args.type != 'mct':
         loadName = f"./data/out2LLMs/train_data_{city}_{args.type}.json"
     dataset = load_dataset("json", data_files= loadName, split= 'train')
+    afterSent = "### Response:\nThe most suitable restaurant is"
     if args.type == 'mct':
         restaurantDataset = dataset.map(formatting_prompts_func)
-        afterSent = "### Response:\nThe most suitable restaurant is"
-    else:
+    elif args.type == 'list':
         restaurantDataset = dataset.map(formatting_list_prompts_func)
         afterSent = "### Response:\n"
+    else:
+        restaurantDataset = dataset.map(formatting_MCNprompts_func)
 
     print(restaurantDataset[0]['text'])
 
@@ -177,7 +197,7 @@ if __name__ == '__main__':
     if args.LLM == "Gemma":
         saveName = f"Gemma_{city}_tunModel"
     if args.type != "mct":
-        saveName += "list"
+        saveName += args.type
 
     model.save_pretrained(saveName)
     tokenizer.save_pretrained(saveName)

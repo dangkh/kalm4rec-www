@@ -94,7 +94,7 @@ if __name__ == '__main__':
     listcity = ['edinburgh', 'london', 'singapore', 'tripAdvisor', 'amazonBaby', 'amazonVideo']
     parser = argparse.ArgumentParser('infer Kalm4Rec')
     parser.add_argument('--city', type=str, default='singapore', help=f'choose city{listcity}')
-    parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcl: multiple choice + list, list')
+    parser.add_argument('--type', type=str, default='mct', help=f'mct: multiple choice + token, mcn: no Note, list: listwise generation')
     parser.add_argument('--LLM', type=str, default='LLama', help='LLama, Gemma')
     parser.add_argument('--baseline', type=bool, default=False, help='print baseline')
     parser.add_argument('--use_tuning', type=bool, default=False, help='use pretrained or use tunModel')
@@ -132,8 +132,8 @@ if __name__ == '__main__':
         model_name = f"{city}_tunModel"
         if args.LLM == "Gemma":
             model_name = f"Gemma_{city}_tunModel"
-        if args.type == "list":
-            model_name += 'list'
+        if args.type != "mct":
+            model_name += args.type
     else:
         model_name = "unsloth/Meta-Llama-3.1-8B"
         if  args.LLM == "Gemma":
