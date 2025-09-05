@@ -146,8 +146,8 @@ if __name__ == '__main__':
     EOS_TOKEN = tokenizer.eos_token
     
     loadName = f"./data/out2LLMs/train_data_{city}.json"
-    if args.type != 'mct':
-        loadName = f"./data/out2LLMs/train_data_{city}_{args.type}.json"
+    if args.type == 'list':
+        loadName = f"./data/out2LLMs/train_data_{city}_list.json"
     dataset = load_dataset("json", data_files= loadName, split= 'train')
     afterSent = "### Response:\nThe most suitable restaurant is"
     if args.type == 'mct':
