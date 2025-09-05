@@ -82,8 +82,8 @@ def predict_answer(model, input_prompt):
     return res
 
 def get_answerList(model, input_prompt):
-    inputs = tokenizer([input_prompt], return_tensors = "pt").to("cuda")
-    outputs = model.generate(**inputs, max_new_tokens = 200, do_sample=False, num_beams=1, use_cache = True)
+    inputs = tokenizer([input_prompt], return_tensors = "pt").to(model.device)
+    outputs = model.generate(**inputs, max_new_tokens = 200, do_sample=False, num_beams=1, use_cache = False)
     gen_ids = outputs[:, inputs["input_ids"].shape[-1]:]
     preds = tokenizer.batch_decode(gen_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
     output = preds[0].strip()
@@ -164,9 +164,11 @@ if __name__ == '__main__':
                     candilist, tmp_str = cand_kw_fn_list(uid, train_res_kw, data_user_test, map_rest_id2int, 20, kws_for_rest)
                     input_prompt = list_prompt.format(', '.join(user_kw), candilist, tmp_str)
                     output = get_answerList(model, input_prompt)
+                    print(output)
+                    stop
                     first_line = output.strip().split("\n")[0]
                     output = [int(x) for x in re.findall(r"\d+", first_line)]
-                    predicted_answer = [int(outX) for outX in output]
+                    answer = [int(outX) for outX in output]
                 else:
                     pass
                 user_rank[uid] = answer
