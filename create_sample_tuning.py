@@ -98,8 +98,11 @@ if __name__ == '__main__':
 
     listData = []
     counter = 0
-    shuffle = 20
-    hardsample = 40
+    shuffle = 0
+    hardsample = 0
+    if args.type != 'type':
+        shuffle = 20
+        hardsample = 40
 
     # keep huge part is not being change to learn the pattern
     for uid, interacted, pos_items, sampled_neg_items in tqdm(listPosNeg):
@@ -135,31 +138,49 @@ if __name__ == '__main__':
             posPos = candidate.index(poss[0])
             candidate[posPos] = candidate[negPos]
             candidate[negPos] = poss[0]
-        
-        outLb = [candidate.index(x) for x in poss]
-        lc = [train_res_kw[x][:args.kws_for_rest] for x in candidate]
-        listData.append((lu, lc,outLb))
+        if args.type != 'list':
+            outLb = [candidate.index(x) for x in poss]
+            listData.append((lu, lc, outLb))
+        else:
+            for ii in range(3):
+                random.shuffle(poss)
+                shuffleCandi = [x for x in poss]
+                shuffleCandi.extend(negs)
+                lc = [train_res_kw[x][:args.kws_for_rest] for x in candidate]
+                listData.append((lu, lc, candidate, shuffleCandi))
+
 
 
     # mct
     counterAppear = [0] * len(letters)
     listTrain = []
     for datapoint in listData[:4000]:
-        npos = len(datapoint[-1])
+        if args.type == 'mct':
+            npos = len(datapoint[-1])
 
-        # get all positive item, move to first
-        for ii in range(min(npos, 10)):
-            tmp = ord(letters[datapoint[2][ii]]) - ord('A')
-            counterAppear[tmp] += 1
+            # get all positive item, move to first
+            for ii in range(min(npos, 10)):
+                tmp = ord(letters[datapoint[2][ii]]) - ord('A')
+                counterAppear[tmp] += 1
+                input1 = ', '.join(datapoint[0])
+                allkw = datapoint[1]
+                input2 = ' '.join(map(lambda item: f'{letters[item[0]]}. ({", ".join(item[1])}) ;\n', enumerate(allkw)))
+                lt = [letters[x] for x in datapoint[2]]
+                listTrain.append({'user': input1, 'input': input2, 'output': lt, 'top': letters[datapoint[2][ii]]})
+        else:
             input1 = ', '.join(datapoint[0])
             allkw = datapoint[1]
-            input2 = ' '.join(map(lambda item: f'{letters[item[0]]}. ({", ".join(item[1])}) ;\n', enumerate(allkw)))
-            lt = [letters[x] for x in datapoint[2]]
-            listTrain.append({'user': input1, 'input': input2, 'output': lt, 'top': letters[datapoint[2][ii]]})
+            candidate = datapoint[2]
+            input2 = ' '.join(map(lambda item: f'{candidate[item[0]]}. ({", ".join(item[1])}) ;\n', enumerate(allkw)))
+            listTrain.append({'user': input1, 'input': input2, 'candidate': str(candidate),'output': str(datapoint[3])})
 
-    for l,c in zip(counterAppear, letters):
-        print(l, c)
+    if args.type == "mct":
+        print(counterAppear, letters)
 
     len(listTrain)
-    with open(f'./data/out2LLMs/train_data_{city}.json', 'w', encoding='utf-8') as f:
+
+    saveName = f'./data/out2LLMs/train_data_{city}.json'
+    if args.type != "mct":
+        saveName = f'./data/out2LLMs/train_data_{city}_{args.type}.json'
+    with open(saveName, 'w', encoding='utf-8') as f:
         json.dump(listTrain, f, ensure_ascii=False, indent=2)    

@@ -43,40 +43,32 @@ auxilliary = """
 ### NOTE: All possible Restaurants:
 {}
 """
-def predict_answer(model, input_prompt):
-    inputs = tokenizer([input_prompt], return_tensors="pt").to(model.device)
 
-    with torch.no_grad():
-        output = model(**inputs)
 
-    # Get logits for the next token
-    logits = output.logits[:, -1, :]
+list_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
-    probs = F.softmax(logits, dim=-1)
+### Instruction:
+You are a restaurant recommender system. Given the keywords representing both the user and the restaurants, your task is:
+First, Rerank the restaurants based on how semantically relevant and suitable their keywords are to the user’s preferences, rather than simply matching identical words. Consider the meaning and context of the keywords to determine suitability. Focus on the top 5 most suitable restaurants.
+Then, respond with a list of all re-ranked restaurants, ordered from most to least suitable. No explaination.
 
-    # Letters A, B, ...
-    letters = [chr(i) for i in range(ord('A'), ord('A') + 20)]
 
-    token_ids = []
-    for letter in letters:
-        tokenized = tokenizer(" " + letter, add_special_tokens=False)["input_ids"]
-        if len(tokenized) == 1:
-            token_ids.append(tokenized[0])
-        else:
-            token_ids.append(tokenized[0])
-    token_probs = {}
-    for letter, tid in zip(letters, token_ids):
-        if tid is not None:
-            token_probs[letter] = probs[0, tid].item()
+### Input:
+These are the keywords that user often mention when wanting to choose restaurants: {}.
+Candidate restaurants for user are (format: [restaurant_id_1, restaurant_id_2, ...]): {}
+The restaurant with the associated keywords have the following form: restaurant_id_1: (keyword 1, keyword 2,...) are: \n
+{}
 
-    # Sort and take top 15
-    top_tokens = sorted(token_probs.items(), key=lambda x: x[1], reverse=True)[:15]
+### Response:
+{}"""
 
-    res = [x for x, v in top_tokens]
-    return res
+
 
 def formatting_prompts_func(data):
     return {"text": alpaca_prompt_tunning.format(data["user"], data["input"], data["top"]) + auxilliary.format(data["output"]) + EOS_TOKEN}
+
+def formatting_list_prompts_func(data):
+    return {"text": list_prompt.format(data["user"], data["candidate"], data["input"],  data["output"]) + EOS_TOKEN}
 
 if __name__ == '__main__':
     listcity = ['edinburgh', 'london', 'singapore', 'tripAdvisor', 'amazonBaby', 'amazonVideo']
@@ -134,10 +126,18 @@ if __name__ == '__main__':
 
     EOS_TOKEN = tokenizer.eos_token
     
+    loadName = f"./data/out2LLMs/train_data_{city}.json"
+    if args.type != 'mct':
+        loadName = f"./data/out2LLMs/train_data_{city}_{args.type}.json"
+    dataset = load_dataset("json", data_files= loadName, split= 'train')
+    if args.type == 'mct':
+        restaurantDataset = dataset.map(formatting_prompts_func)
+        afterSent = "### Response:\nThe most suitable restaurant is"
+    else:
+        restaurantDataset = dataset.map(formatting_list_prompts_func)
+        afterSent = "### Response:\n"
 
-    dataset = load_dataset("json", data_files=f"./data/out2LLMs/train_data_{city}.json", split='train')
-    restaurantDataset = dataset.map(formatting_prompts_func)
-    print(restaurantDataset[0])
+    print(restaurantDataset[0]['text'])
 
 
     trainer = SFTTrainer(
@@ -145,7 +145,7 @@ if __name__ == '__main__':
         tokenizer = tokenizer,
         train_dataset = restaurantDataset,
         dataset_text_field = "text",
-        response_template="### Response:\nThe most suitable restaurant is",  # << gồm cả khoảng trắng cuối
+        response_template= afterSent,  # << gồm cả khoảng trắng cuối
         train_on_prompt=False,      # << chỉ tính loss sau response_template
         max_seq_length = 4096,
         dataset_num_proc = 0,
@@ -175,8 +175,13 @@ if __name__ == '__main__':
     saveName = f"{city}_tunModel"
     if args.LLM == "Gemma":
         saveName = f"Gemma_{city}_tunModel"
+    if args.type != "mct":
+        saveName += "list"
+
     model.save_pretrained(saveName)
     tokenizer.save_pretrained(saveName)
 
-
+    print("*"*50)
+    print("*"*6, f"Saved tp {saveName}", "*"*6)
+    print("*"*50)
 

@@ -42,11 +42,12 @@ Then, respond with a list of all re-ranked restaurants, ordered from most to lea
 ### Input:
 These are the keywords that user often mention when wanting to choose restaurants: {}.
 Candidate restaurants for user are (format: [restaurant_id_1, restaurant_id_2, ...]): {}
-The restaurant with the associated keywords have the following form: A: (keyword 1, keyword 2,...) are: \n
+The restaurant with the associated keywords have the following form: restaurant_id_1: (keyword 1, keyword 2,...) are: \n
 {}
 
+Provide TOP 15 most suitable restaurants from the candidate set, ordered from most to least suitable.
 ### Response:
-Top 15 most suitable restaurants from the candidate set, ordered from most to least suitable are:"""
+"""
 
 def predict_answer(model, input_prompt):
     inputs = tokenizer([input_prompt], return_tensors="pt").to(model.device)
