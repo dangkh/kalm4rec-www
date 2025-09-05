@@ -83,7 +83,7 @@ def predict_answer(model, input_prompt):
 
 def get_answerList(model, input_prompt):
     inputs = tokenizer([input_prompt], return_tensors = "pt").to(model.device)
-    outputs = model.generate(**inputs, max_new_tokens = 200, do_sample=False, num_beams=1, use_cache = False)
+    outputs = model.generate(**inputs, max_new_tokens = 64, do_sample=False, num_beams=1, use_cache = False)
     gen_ids = outputs[:, inputs["input_ids"].shape[-1]:]
     preds = tokenizer.batch_decode(gen_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)
     output = preds[0].strip()
